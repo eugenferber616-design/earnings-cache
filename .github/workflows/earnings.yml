@@ -1,0 +1,59 @@
+name: Nightly Earnings Cache (ALL, single-call)
+
+on:
+  schedule:
+    - cron: '30 3 * * *'   # 03:30 UTC, 1x pro Nacht
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages-nightly-all'
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: pip install -r scripts/requirements.txt
+      - name: Build cache (single API call)
+        run: python scripts/fetch_earnings.py
+        env:
+          FINNHUB_TOKEN: ${{ secrets.FINNHUB_TOKEN }}
+          FINNHUB_EARNINGS_TTL_HOURS: ${{ vars.FINNHUB_EARNINGS_TTL_HOURS }}
+          FINNHUB_DAYS_AHEAD: ${{ vars.FINNHUB_DAYS_AHEAD }}
+          FINNHUB_DAYS_BACK: ${{ vars.FINNHUB_DAYS_BACK }}
+      - name: Commit updated docs (if changed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [[ -n $(git status --porcelain docs) ]]; then
+            git add docs
+            git commit -m "chore(docs): update earnings cache [skip ci]"
+            git push
+          else
+            echo "No changes to commit."
+          fi
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
