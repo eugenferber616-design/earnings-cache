@@ -15,7 +15,7 @@ def getenv_int(name, default):
     except (TypeError, ValueError):
         return default
 
-EARNINGS_TTL_HOURS = getenv_int("FINNHUB_EARNINGS_TTL_HOURS", 24)
+EARNINGS_TTL_HOURS = getenv_int("FINNHUB_EARNINGS_TTL_HOURS", 0)
 DAYS_AHEAD         = getenv_int("FINNHUB_DAYS_AHEAD", 365)
 DAYS_BACK          = getenv_int("FINNHUB_DAYS_BACK", 7)
 
