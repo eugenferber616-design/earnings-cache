@@ -16,15 +16,15 @@ OUTPUT_JSON = DOCS_DIR / "earnings.json"
 LAST_RUN = DOCS_DIR / "last_run.txt"
 
 def getenv_int(name, default):
-    v = os.environ.get(name, "").strip()
+    v = os.environ.get(name, "")
     try:
-        return int(v)
+        return int(str(v).strip())
     except (TypeError, ValueError):
         return default
 
-EARNINGS_TTL_HOURS = getenv_int("FINNHUB_EARNINGS_TTL_HOURS", 20)
-DAYS_AHEAD         = getenv_int("FINNHUB_DAYS_AHEAD", 120)
-DAYS_BACK          = getenv_int("FINNHUB_DAYS_BACK", 1)
+EARNINGS_TTL_HOURS = getenv_int("FINNHUB_EARNINGS_TTL_HOURS", 24)
+DAYS_AHEAD         = getenv_int("FINNHUB_DAYS_AHEAD", 365)
+DAYS_BACK          = getenv_int("FINNHUB_DAYS_BACK", 7)
 
 
 TODAY = datetime.date.today()
@@ -101,6 +101,20 @@ def main():
         print(f"Updated {OUTPUT_JSON} with {len(idx)} symbols.")
     else:
         print("No changes in earnings.json; keep existing.")
+
+    # --- kleine Statistik mitschreiben ---
+stats = {
+    "count": len(idx),
+    "daysAhead": DAYS_AHEAD,
+    "daysBack": DAYS_BACK,
+    "lastUpdatedUtc": datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+}
+(DOCS_DIR / "stats.json").write_text(
+    json.dumps(stats, ensure_ascii=False, indent=2),
+    encoding="utf-8"
+)
+# -------------------------------------
+
 
     LAST_RUN.write_text(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"), encoding="utf-8")
 
