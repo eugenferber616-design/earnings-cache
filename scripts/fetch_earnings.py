@@ -15,9 +15,17 @@ DOCS_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_JSON = DOCS_DIR / "earnings.json"
 LAST_RUN = DOCS_DIR / "last_run.txt"
 
-EARNINGS_TTL_HOURS = int(os.environ.get("FINNHUB_EARNINGS_TTL_HOURS", "20"))
-DAYS_AHEAD = int(os.environ.get("FINNHUB_DAYS_AHEAD", "120"))
-DAYS_BACK = int(os.environ.get("FINNHUB_DAYS_BACK", "1"))
+def getenv_int(name, default):
+    v = os.environ.get(name, "").strip()
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return default
+
+EARNINGS_TTL_HOURS = getenv_int("FINNHUB_EARNINGS_TTL_HOURS", 20)
+DAYS_AHEAD         = getenv_int("FINNHUB_DAYS_AHEAD", 120)
+DAYS_BACK          = getenv_int("FINNHUB_DAYS_BACK", 1)
+
 
 TODAY = datetime.date.today()
 FROM_DATE = (TODAY - datetime.timedelta(days=DAYS_BACK)).strftime("%Y-%m-%d")
