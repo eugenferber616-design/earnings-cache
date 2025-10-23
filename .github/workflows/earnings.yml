@@ -28,9 +28,10 @@ jobs:
         run: python scripts/fetch_earnings.py
         env:
           FINNHUB_TOKEN: ${{ secrets.FINNHUB_TOKEN }}
-          FINNHUB_EARNINGS_TTL_HOURS: ${{ vars.FINNHUB_EARNINGS_TTL_HOURS }}
-          FINNHUB_DAYS_AHEAD: ${{ vars.FINNHUB_DAYS_AHEAD }}
-          FINNHUB_DAYS_BACK: ${{ vars.FINNHUB_DAYS_BACK }}
+          FINNHUB_EARNINGS_TTL_HOURS: ${{ vars.FINNHUB_EARNINGS_TTL_HOURS || 20 }}
+          FINNHUB_DAYS_AHEAD:         ${{ vars.FINNHUB_DAYS_AHEAD || 120 }}
+          FINNHUB_DAYS_BACK:          ${{ vars.FINNHUB_DAYS_BACK  || 1 }}
+
       - name: Commit updated docs (if changed)
         run: |
           git config user.name "github-actions[bot]"
