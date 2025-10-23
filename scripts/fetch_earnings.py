@@ -94,8 +94,9 @@ def main():
     cal = fetch_calendar(FROM_DATE, TO_DATE)
     idx = build_index_all(cal)
 
-    new_json = json.dumps(idx, ensure_ascii=False, indent=2, sort_keys=True)
+        new_json = json.dumps(idx, ensure_ascii=False, indent=2, sort_keys=True)
     old_json = OUTPUT_JSON.read_text(encoding="utf-8") if OUTPUT_JSON.exists() else ""
+
     if new_json != old_json:
         OUTPUT_JSON.write_text(new_json, encoding="utf-8")
         print(f"Updated {OUTPUT_JSON} with {len(idx)} symbols.")
@@ -103,20 +104,23 @@ def main():
         print("No changes in earnings.json; keep existing.")
 
     # --- kleine Statistik mitschreiben ---
-stats = {
-    "count": len(idx),
-    "daysAhead": DAYS_AHEAD,
-    "daysBack": DAYS_BACK,
-    "lastUpdatedUtc": datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
-}
-(DOCS_DIR / "stats.json").write_text(
-    json.dumps(stats, ensure_ascii=False, indent=2),
-    encoding="utf-8"
-)
-# -------------------------------------
+    stats = {
+        "count": len(idx),
+        "daysAhead": DAYS_AHEAD,
+        "daysBack": DAYS_BACK,
+        "lastUpdatedUtc": datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+    }
+    (DOCS_DIR / "stats.json").write_text(
+        json.dumps(stats, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    # -------------------------------------
 
+    LAST_RUN.write_text(
+        datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        encoding="utf-8",
+    )
 
-    LAST_RUN.write_text(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"), encoding="utf-8")
 
 if __name__ == "__main__":
     main()
