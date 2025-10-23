@@ -42,10 +42,11 @@ FROM_DATE = (TODAY - datetime.timedelta(days=DAYS_BACK)).strftime("%Y-%m-%d")
 TO_DATE   = (TODAY + datetime.timedelta(days=DAYS_AHEAD)).strftime("%Y-%m-%d")
 
 # ---------- Helpers ----------
- file_age_hours(path: pathlib.Path) -> float:
+def file_age_hours(path: pathlib.Path) -> float:
     if not path.exists():
         return 1e9
     return (time.time() - path.stat().st_mtime) / 3600.0
+
 
 def month_ranges(start_date: datetime.date, end_date: datetime.date):
     """Zerlegt [start,end] in Monatsfenster (inklusive)."""
@@ -63,6 +64,7 @@ def month_ranges(start_date: datetime.date, end_date: datetime.date):
         out.append((frm.strftime("%Y-%m-%d"), to.strftime("%Y-%m-%d")))
         cur = nxt
     return out
+
 
 def fetch_symbols_from_exchanges(ex_list):
     all_syms = []
