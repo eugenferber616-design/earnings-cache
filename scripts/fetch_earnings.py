@@ -187,25 +187,18 @@ def main():
     ex_list = [e.strip() for e in EXCHANGES.split(",") if e.strip()]
     sym_universe = load_symbols_cached(ex_list, ttl_days=7)
 
-    # (2) Kalender monatsweise abrufen und zusammenführen
+       # (2) Kalender monatsweise abrufen und zusammenführen
     start = datetime.datetime.strptime(FROM_DATE, "%Y-%m-%d").date()
     end   = datetime.datetime.strptime(TO_DATE, "%Y-%m-%d").date()
-    # ...
-all_rows = []
+    all_rows = []
     for frm, to in month_ranges(start, end):
-    cal = fetch_calendar_range(frm, to)
-    all_rows.extend(cal.get("earningsCalendar") or [])
-
-    filtered_rows = [r for r in all_rows if (r.get("symbol") or "").strip() in sym_universe]
-    filtered = {"earningsCalendar": filtered_rows}
-
-    idx = build_index_all(filtered)
-    # ...
-    write_stats(len(idx), universe_count=len(sym_universe), rows_total=len(all_rows), rows_after_filter=len(filtered_rows))
-
+        cal = fetch_calendar_range(frm, to)
+        rows = cal.get("earningsCalendar") or []
+        all_rows.extend(rows)
 
     # (3) Nur USA/EU Symbole behalten
-    filtered = {"earningsCalendar": [r for r in all_rows if (r.get("symbol") or "").strip() in sym_universe]}
+    filtered_rows = [r for r in all_rows if (r.get("symbol") or "").strip() in sym_universe]
+    filtered = {"earningsCalendar": filtered_rows}
 
     # (4) Index bauen
     idx = build_index_all(filtered)
@@ -220,8 +213,14 @@ all_rows = []
         print("No changes in earnings.json; keep existing.")
 
     # (6) Stats & last_run immer aktualisieren
-    write_stats(len(idx))
+    write_stats(
+        len(idx),
+        universe_count=len(sym_universe),
+        rows_total=len(all_rows),
+        rows_after_filter=len(filtered_rows),
+    )
     LAST_RUN.write_text(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"), encoding="utf-8")
+
 
 if __name__ == "__main__":
     main()
