@@ -157,14 +157,18 @@ def build_index_all(calendar_json):
         }
     return out
 
-def write_stats(count: int):
+def write_stats(count: int, universe_count: int = None, rows_total: int = None, rows_after_filter: int = None):
     stats = {
         "count": count,
         "daysAhead": DAYS_AHEAD,
         "daysBack": DAYS_BACK,
         "lastUpdatedUtc": datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
     }
+    if universe_count is not None:   stats["universeCount"] = universe_count
+    if rows_total is not None:       stats["calendarRowsFetched"] = rows_total
+    if rows_after_filter is not None:stats["calendarRowsAfterFilter"] = rows_after_filter
     STATS_JSON.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
+
 
 # ---------- Main ----------
 def main():
@@ -186,11 +190,19 @@ def main():
     # (2) Kalender monatsweise abrufen und zusammenführen
     start = datetime.datetime.strptime(FROM_DATE, "%Y-%m-%d").date()
     end   = datetime.datetime.strptime(TO_DATE, "%Y-%m-%d").date()
-    all_rows = []
+    # ...
+all_rows = []
     for frm, to in month_ranges(start, end):
-        cal = fetch_calendar_range(frm, to)
-        rows = cal.get("earningsCalendar") or []
-        all_rows.extend(rows)
+    cal = fetch_calendar_range(frm, to)
+    all_rows.extend(cal.get("earningsCalendar") or [])
+
+    filtered_rows = [r for r in all_rows if (r.get("symbol") or "").strip() in sym_universe]
+    filtered = {"earningsCalendar": filtered_rows}
+
+    idx = build_index_all(filtered)
+    # ...
+    write_stats(len(idx), universe_count=len(sym_universe), rows_total=len(all_rows), rows_after_filter=len(filtered_rows))
+
 
     # (3) Nur USA/EU Symbole behalten
     filtered = {"earningsCalendar": [r for r in all_rows if (r.get("symbol") or "").strip() in sym_universe]}
