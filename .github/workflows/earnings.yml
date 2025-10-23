@@ -28,7 +28,7 @@ jobs:
         run: python scripts/fetch_earnings.py
         env:
           FINNHUB_TOKEN: ${{ secrets.FINNHUB_TOKEN }}
-          FINNHUB_EARNINGS_TTL_HOURS: ${{ vars.FINNHUB_EARNINGS_TTL_HOURS || 24 }}
+          FINNHUB_EARNINGS_TTL_HOURS: ${{ vars.FINNHUB_EARNINGS_TTL_HOURS || 0 }}
           FINNHUB_DAYS_AHEAD:         ${{ vars.FINNHUB_DAYS_AHEAD || 365 }}
           FINNHUB_DAYS_BACK:          ${{ vars.FINNHUB_DAYS_BACK  || 7 }}
           FINNHUB_EXCHANGES:          ${{ vars.FINNHUB_EXCHANGES  || 'US,DE,PA,LSE,AS,MI,MC,STO,SWX' }}
