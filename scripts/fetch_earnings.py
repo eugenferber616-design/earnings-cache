@@ -94,7 +94,7 @@ def main():
     cal = fetch_calendar(FROM_DATE, TO_DATE)
     idx = build_index_all(cal)
 
-        new_json = json.dumps(idx, ensure_ascii=False, indent=2, sort_keys=True)
+    new_json = json.dumps(idx, ensure_ascii=False, indent=2, sort_keys=True)
     old_json = OUTPUT_JSON.read_text(encoding="utf-8") if OUTPUT_JSON.exists() else ""
 
     if new_json != old_json:
