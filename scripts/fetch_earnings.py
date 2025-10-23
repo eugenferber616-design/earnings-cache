@@ -178,21 +178,28 @@ def main():
     # Wenn Cache frisch: keine API-Calls, aber stats aus vorhandenen Dateien schreiben
     if file_age_hours(OUTPUT_JSON) < EARNINGS_TTL_HOURS and not os.environ.get("FINNHUB_FORCE"):
         try:
-        current = json.loads(OUTPUT_JSON.read_text(encoding="utf-8"))
+            current_text = OUTPUT_JSON.read_text(encoding="utf-8")
+            current = json.loads(current_text) if current_text.strip() else {}
+        except Exception:
+            current = {}
+
         count = len(current)
-        except Exception:
-        count = 0
-    # Universe-Zahl aus dem Symbols-Cache lesen (falls vorhanden)
-        universe = None
+
+        # Universe-Zahl aus dem Symbols-Cache lesen (falls vorhanden)
         try:
-        sc = json.loads(SYMBOLS_CACHE.read_text(encoding="utf-8"))
-        universe = len(sc.get("symbols", []))
+            sc_text = SYMBOLS_CACHE.read_text(encoding="utf-8")
+            sc = json.loads(sc_text)
+            universe = len(sc.get("symbols", []))
         except Exception:
-        pass
-    write_stats(count, universe_count=universe)
-    LAST_RUN.write_text(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"), encoding="utf-8")
+            universe = None
+
+        write_stats(count, universe_count=universe)
+        LAST_RUN.write_text(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"), encoding="utf-8")
         print(f"Cache fresh: {OUTPUT_JSON} age < {EARNINGS_TTL_HOURS}h — skipping fetch.")
-    return
+        return
+
+    # ... (danach geht’s weiter mit (1) Symbol-Universum laden, (2) Monats-Loop usw.)
+
 
 
     # (1) Symbol-Universum (USA/EU) — 1x/Woche frisch
