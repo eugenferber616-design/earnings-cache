@@ -42,7 +42,7 @@ FROM_DATE = (TODAY - datetime.timedelta(days=DAYS_BACK)).strftime("%Y-%m-%d")
 TO_DATE   = (TODAY + datetime.timedelta(days=DAYS_AHEAD)).strftime("%Y-%m-%d")
 
 # ---------- Helpers ----------
-def file_age_hours(path: pathlib.Path) -> float:
+ file_age_hours(path: pathlib.Path) -> float:
     if not path.exists():
         return 1e9
     return (time.time() - path.stat().st_mtime) / 3600.0
@@ -170,18 +170,28 @@ def write_stats(count: int, universe_count: int = None, rows_total: int = None, 
     STATS_JSON.write_text(json.dumps(stats, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+
 # ---------- Main ----------
 def main():
-    # Wenn Cache frisch: keine API-Calls, aber stats.json/last_run aktualisieren
-    if file_age_hours(OUTPUT_JSON) < EARNINGS_TTL_HOURS:
+    # Wenn Cache frisch: keine API-Calls, aber stats aus vorhandenen Dateien schreiben
+    if file_age_hours(OUTPUT_JSON) < EARNINGS_TTL_HOURS and not os.environ.get("FINNHUB_FORCE"):
         try:
-            current = json.loads(OUTPUT_JSON.read_text(encoding="utf-8"))
-            write_stats(len(current))
+        current = json.loads(OUTPUT_JSON.read_text(encoding="utf-8"))
+        count = len(current)
         except Exception:
-            write_stats(0)
-        LAST_RUN.write_text(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"), encoding="utf-8")
+        count = 0
+    # Universe-Zahl aus dem Symbols-Cache lesen (falls vorhanden)
+        universe = None
+        try:
+        sc = json.loads(SYMBOLS_CACHE.read_text(encoding="utf-8"))
+        universe = len(sc.get("symbols", []))
+        except Exception:
+        pass
+    write_stats(count, universe_count=universe)
+    LAST_RUN.write_text(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"), encoding="utf-8")
         print(f"Cache fresh: {OUTPUT_JSON} age < {EARNINGS_TTL_HOURS}h — skipping fetch.")
-        return
+    return
+
 
     # (1) Symbol-Universum (USA/EU) — 1x/Woche frisch
     ex_list = [e.strip() for e in EXCHANGES.split(",") if e.strip()]
