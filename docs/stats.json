@@ -1,9 +1,9 @@
 {
-  "count": 4795,
+  "count": 4796,
   "daysAhead": 365,
   "daysBack": 7,
-  "lastUpdatedUtc": "2025-11-02T03:55:53Z",
+  "lastUpdatedUtc": "2025-11-03T04:01:30Z",
   "universeCount": 29014,
-  "calendarRowsFetched": 13100,
-  "calendarRowsAfterFilter": 12547
+  "calendarRowsFetched": 13134,
+  "calendarRowsAfterFilter": 12581
 }
